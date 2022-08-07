@@ -163,12 +163,9 @@ void ANIPANG::moveIcon(Vec2 MovingDirection, int PorM)
 
 	MoveBy* swipeOne = MoveBy::create(0.3, Point(MovingDirection.x, MovingDirection.y));
 	MoveBy* swipeTwo = MoveBy::create(0.3, Point(-MovingDirection.x, -MovingDirection.y));
-	TintTo* changeC = TintTo::create(0.5, 120, 30, 300);
 
 	field[NowX][NowY].anipangIcon->runAction(swipeOne);
 	field[replaceX][replaceY].anipangIcon->runAction(swipeTwo);
-	//field[NowX][NowY].anipangIcon->runAction(changeC);
-	//field[replaceX][replaceY].anipangIcon->runAction(changeC);
 
 	temp = field[NowX][NowY].type;
 	field[NowX][NowY].type = field[replaceX][replaceY].type;
@@ -191,7 +188,18 @@ void ANIPANG::delIcon()
 		{
 			boomingIcon.push_back(make_pair(NowX, NowY));
 			log("boom");
-			IconBoom();
+		
+			for (size_t j = 0; j < boomingIcon.size(); j++)
+			{
+				log("[boom] Icon direction = %d, %d", boomingIcon[j].first, boomingIcon[j].second);
+			}
+
+			for (size_t k = 0; k < boomingIcon.size(); k++)
+			{
+				IconBoom(boomingIcon[k].first, boomingIcon[k].second);
+			}
+			boomingIcon.clear();
+			boomingIcon.shrink_to_fit();
 		}
 		else
 		{
@@ -199,29 +207,28 @@ void ANIPANG::delIcon()
 		}
 		NowX += aroundX[SearchDirection];
 		NowY += aroundY[SearchDirection];
+		bombConditions[X] = 0;
+		bombConditions[Y] = 0;
 	}
 }
 
-void ANIPANG::IconBoom()
+void ANIPANG::IconBoom(int first, int second)
 {
 	Hide* IconHide = Hide::create();
+	Blink* IconBlink = Blink::create(1000, 2000);
 
-	//for (size_t i = 0; i < boomingIcon.size(); i++)
-	//{
-	//	log("%d, %d", boomingIcon[i].first, boomingIcon[i].second);
-	//}
+	field[first][second].anipangIcon->runAction(IconBlink);
+
 	//for (size_t i = 0; i < boomingIcon.size(); i++)
 	//{
 	//	field[boomingIcon[i].first][boomingIcon[i].second].anipangIcon->runAction(IconHide);
 	//}
 
-
-	boomingIcon.clear();
-	boomingIcon.shrink_to_fit();
 }
 
 int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 {
+	//log("x = %d, y  = %d", bombConditions[X], bombConditions[Y]);
 	int deX=decide.x, deY=decide.y;
 	int replaceX = targetX + aroundX[direction];
 	int replaceY = targetY + aroundY[direction];
@@ -241,7 +248,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 		return true;
 	}
 
-	if (ANIPANGNUM <= targetX || targetX <= 0 )
+	if (ANIPANGNUM <= targetX || targetX < 0 )
 	{
 		matchSearch(targetX, targetY, direction + 1, decide);
 	}
@@ -252,26 +259,30 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 
  	if (field[targetX][targetY].type == field[replaceX + deX][replaceY+deY].type)
 	{
-		log("[replace + de] %d, %d", replaceX + deX, replaceY + deY);
 		boomingIcon.push_back(make_pair(replaceX + deX, replaceY + deY));
+		log("[input vector value] %d %d", replaceX + deX, replaceY + deY);
 		switch (direction)
 		{
 		case RIGHT: 
 			deX++;
 			decide.x = deX;
 			bombConditions[X]++;
+			break;
 		case LEFT:
 			deX--;
 			decide.x = deX;
 			bombConditions[X]++;
+			break;
 		case UP:
 			deY++;
 			decide.y = deY;
 			bombConditions[Y]++;
+			break;
 		case DOWN:
 			deY--;
 			decide.y = deY;
 			bombConditions[Y]++;
+			break;
 		default:
 			break;
 		}
@@ -281,6 +292,9 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 	{
 		decide.x = 0;
 		decide.y = 0;
+
+		boomingIcon.clear();
+		boomingIcon.shrink_to_fit();
 		return matchSearch(targetX, targetY, direction + 1, decide);
 	}
 

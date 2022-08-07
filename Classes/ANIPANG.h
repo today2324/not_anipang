@@ -14,7 +14,7 @@
 #define DOWN 3
 
 #define X 0
-#define Y 0
+#define Y 1
 
 using namespace std;
 using namespace cocos2d;
@@ -61,7 +61,7 @@ public:
 	int aroundX[4] = {1, -1, 0, 0};
 	int aroundY[4] = {0, 0, 1, -1};
 	void delIcon();
-	void IconBoom();
+	void IconBoom(int first, int second);
 	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
 
 public:	

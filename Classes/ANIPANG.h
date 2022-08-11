@@ -50,6 +50,17 @@ public:
 public:	
 	void setLis();
 
+	void reset(bool a[ANIPANGNUM][ANIPANGNUM])
+	{
+		for (size_t i = 0; i < ANIPANGNUM; i++)
+		{
+			for (size_t s = 0; s < ANIPANGNUM; s++)
+			{
+				a[i][s] = false;
+			}
+		}
+	}
+
 	bool onTouchBegan(Touch* touch, Event* event);
 	void onTouchMoved(Touch* touch, Event* event);
 	void onTouchEnded(Touch* touch, Event* event);
@@ -60,9 +71,11 @@ public:
 	int SearchDirection;
 	int aroundX[4] = {1, -1, 0, 0};
 	int aroundY[4] = {0, 0, 1, -1};
+	bool visited[ANIPANGNUM][ANIPANGNUM];
 	void delIcon();
 	void IconBoom(int first, int second);
 	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
+	bool isX = true;
 
 public:	
 	static Scene* createScene();

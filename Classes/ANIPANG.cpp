@@ -169,14 +169,7 @@ void ANIPANG::moveIcon(Vec2 MovingDirection, int PorM)
 	field[replaceX][replaceY].anipangIcon->runAction(swipeTwo);
 
 	swap(field[NowX][NowY].type, field[replaceX][replaceY].type);
-	/*temp = field[NowX][NowY].type;
-	field[NowX][NowY].type = field[replaceX][replaceY].type;
-	field[replaceX][replaceY].type = temp;*/
-
 	swap(field[NowX][NowY].anipangIcon, field[replaceX][replaceY].anipangIcon);
-	//Icontemp = field[NowX][NowY].anipangIcon;
-	//field[NowX][NowY].anipangIcon = field[replaceX][replaceY].anipangIcon;
-	//field[replaceX][replaceY].anipangIcon = Icontemp;
 }
 
 void ANIPANG::delIcon()
@@ -191,10 +184,22 @@ void ANIPANG::delIcon()
 		{
 			//log("boom");
 			boomingIcon.push_back(make_pair(NowX, NowY));
+			
+			sort(&boomingIcon[0], &boomingIcon[boomingIcon.size()-1], compare);
+
+			for (size_t h = 0; h < boomingIcon.size(); h++)
+			{
+				if (boomingIcon[h].first, )
+				{
+
+				}
+			}
+
 			for (size_t k = 0; k < boomingIcon.size(); k++)
 			{
 				IconBoom(boomingIcon[k].first, boomingIcon[k].second);
 			}
+
 			boomingIcon.clear();
 			boomingIcon.shrink_to_fit();
 		}
@@ -213,21 +218,22 @@ void ANIPANG::delIcon()
 
 void ANIPANG::IconBoom(int first, int second)
 {
-	//Blink* IconBlink = Blink::create(60, 120);
-	//field[first][second].anipangIcon->runAction(IconBlink);
 	Hide* IconHide = Hide::create();
 	Show* IconShow = Show::create();
 	MoveBy* IconDrop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
 	MoveBy* IconPullUp = MoveBy::create(0.3, Point(0, ANIPANGDISTANCE * (ANIPANGNUM - second)));
-	field[first][second].anipangIcon->runAction(IconPullUp);
+	Sequence* RaiseLowerOne = Sequence::create(/*IconHide,*/ IconPullUp, IconShow, IconDrop, nullptr);
+
+	field[first][second].anipangIcon->runAction(RaiseLowerOne);
+	field[first][second].type = RandomHelper::random_int(0, (int)iconName.size() - 1);
+	field[first][second].anipangIcon->setTexture(iconName[field[first][second].type]);
+	field[first][second].anipangIcon->setContentSize(Size(ANIPANGSIZE, ANIPANGSIZE));
 
 	for (size_t i = second + 1; i < ANIPANGNUM; i++)
 	{
 		IconFall(field[first][i].anipangIcon/*, IconDrop*/);
 	}
 	
-	//field[first][second].anipangIcon->runAction(IconDrop);
-
 	for (size_t i = second + 1; i < ANIPANGNUM; i++)
 	{
 		if (i != ANIPANGNUM - 1)

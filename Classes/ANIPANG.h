@@ -78,6 +78,15 @@ public:
 	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
 	bool isX = true;
 
+public:
+	bool compare(const pair<int, int>& a, const pair<int, int>& b)
+	{
+		if (a.first == b.first)
+		{
+			return a.second > b.second;
+		}
+		return a.first > b.first
+	}
 
 public:	
 	static Scene* createScene();

@@ -1,4 +1,5 @@
 #include "ANIPANG.h"
+#include <algorithm>
 #pragma execution_character_set("UTF-8")
 USING_NS_CC;
 
@@ -167,13 +168,15 @@ void ANIPANG::moveIcon(Vec2 MovingDirection, int PorM)
 	field[NowX][NowY].anipangIcon->runAction(swipeOne);
 	field[replaceX][replaceY].anipangIcon->runAction(swipeTwo);
 
-	temp = field[NowX][NowY].type;
+	swap(field[NowX][NowY].type, field[replaceX][replaceY].type);
+	/*temp = field[NowX][NowY].type;
 	field[NowX][NowY].type = field[replaceX][replaceY].type;
-	field[replaceX][replaceY].type = temp;
+	field[replaceX][replaceY].type = temp;*/
 
-	Icontemp = field[NowX][NowY].anipangIcon;
-	field[NowX][NowY].anipangIcon = field[replaceX][replaceY].anipangIcon;
-	field[replaceX][replaceY].anipangIcon = Icontemp;
+	swap(field[NowX][NowY].anipangIcon, field[replaceX][replaceY].anipangIcon);
+	//Icontemp = field[NowX][NowY].anipangIcon;
+	//field[NowX][NowY].anipangIcon = field[replaceX][replaceY].anipangIcon;
+	//field[replaceX][replaceY].anipangIcon = Icontemp;
 }
 
 void ANIPANG::delIcon()
@@ -186,17 +189,10 @@ void ANIPANG::delIcon()
 	{
 		if (matchSearch(NowX, NowY, 0, decide))
 		{
+			//log("boom");
 			boomingIcon.push_back(make_pair(NowX, NowY));
-			log("boom");
-		
-			for (size_t j = 0; j < boomingIcon.size(); j++)
-			{
-				log("[boom] Icon direction = %d, %d", boomingIcon[j].first, boomingIcon[j].second);
-			}
-
 			for (size_t k = 0; k < boomingIcon.size(); k++)
 			{
-				log("size = %d", boomingIcon.size());
 				IconBoom(boomingIcon[k].first, boomingIcon[k].second);
 			}
 			boomingIcon.clear();
@@ -204,7 +200,7 @@ void ANIPANG::delIcon()
 		}
 		else
 		{
-			log("no boom");
+			//log("no boom");
 		}
 		reset(visited);
 		NowX += aroundX[SearchDirection];
@@ -217,11 +213,42 @@ void ANIPANG::delIcon()
 
 void ANIPANG::IconBoom(int first, int second)
 {
+	//Blink* IconBlink = Blink::create(60, 120);
+	//field[first][second].anipangIcon->runAction(IconBlink);
 	Hide* IconHide = Hide::create();
-	Blink* IconBlink = Blink::create(60, 120);
 	Show* IconShow = Show::create();
-	Sequence* IconVisible = Sequence::create(IconBlink, IconShow);
-	field[first][second].anipangIcon->runAction(/*IconVisible*/IconBlink);
+	MoveBy* IconDrop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
+	MoveBy* IconPullUp = MoveBy::create(0.3, Point(0, ANIPANGDISTANCE * (ANIPANGNUM - second)));
+	field[first][second].anipangIcon->runAction(IconPullUp);
+
+	for (size_t i = second + 1; i < ANIPANGNUM; i++)
+	{
+		IconFall(field[first][i].anipangIcon/*, IconDrop*/);
+	}
+	
+	//field[first][second].anipangIcon->runAction(IconDrop);
+
+	for (size_t i = second + 1; i < ANIPANGNUM; i++)
+	{
+		if (i != ANIPANGNUM - 1)
+		{
+			swap(field[first][i].anipangIcon, field[first][i + 1].anipangIcon);
+			swap(field[first][i].type, field[first][i + 1].type);
+		}
+		else
+		{
+			swap(field[first][i].anipangIcon, field[first][second].anipangIcon);
+			swap(field[first][i].type, field[first][second].type);
+		}
+	}
+}
+
+
+void ANIPANG::IconFall(Sprite* AnipangIcon/*, MoveBy* IconDrop*/)
+{
+	MoveBy* IconDrop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
+	Blink* IconBlink = Blink::create(60, 120);
+	AnipangIcon->runAction(IconDrop);
 }
 
 int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
@@ -257,13 +284,11 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 	//top bottom disconnect
 	if (ANIPANGNUM <= replaceX+deX || replaceX+deX < 0)
 	{
-		log("X fff [direction = %d]", direction);
 		deX = 0;
 		return matchSearch(targetX, targetY, direction + 1, decide);
 	}
 	if (ANIPANGNUM <= replaceY + deY || replaceY + deY < 0)
 	{
-		log("Y fff [direction = %d]", direction);
 		deY = 0;
 		return matchSearch(targetX, targetY, direction + 1, decide);
 	}
@@ -272,7 +297,6 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 	{
 		if (visited[replaceX + deX][replaceY + deY])
 		{
-			log("visited Icon");
 			return matchSearch(targetX, targetY, direction + 1, decide);
 		}
 		if (targetX != replaceX + deX || targetY != replaceY + deY)
@@ -280,7 +304,6 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 			boomingIcon.push_back(make_pair(replaceX + deX, replaceY + deY));
 		}
 
-		log("[input vector value] %d %d", replaceX + deX, replaceY + deY);
 		visited[replaceX + deX][replaceY + deY] = true;
 
 		switch (direction)

@@ -172,6 +172,9 @@ void ANIPANG::moveIcon(Vec2 MovingDirection, int PorM)
 	swap(field[NowX][NowY].anipangIcon, field[replaceX][replaceY].anipangIcon);
 }
 
+// boomingIcon sort  using pair and sort algorithm
+// 아이콘 떨어지는거 세로 확인 및 제작
+
 void ANIPANG::delIcon()
 {
 	Vec2 decide;

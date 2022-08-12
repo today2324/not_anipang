@@ -74,8 +74,10 @@ public:
 	bool visited[ANIPANGNUM][ANIPANGNUM];
 	void delIcon();
 	void IconBoom(int first, int second);
+	void IconFall(Sprite* AnipangIcon/*, MoveBy* IconDrop*/);
 	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
 	bool isX = true;
+
 
 public:	
 	static Scene* createScene();

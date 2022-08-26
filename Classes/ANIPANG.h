@@ -47,9 +47,9 @@ public:
 	int width = ANIPANGINITVALUE;
 	int height = ANIPANGINITVALUE;
 
+	Vec2 decide;
 public:	
 	void setLis();
-
 	void reset(bool a[ANIPANGNUM][ANIPANGNUM])
 	{
 		for (size_t i = 0; i < ANIPANGNUM; i++)
@@ -59,6 +59,13 @@ public:
 				a[i][s] = false;
 			}
 		}
+	}
+
+	void IconFall(Sprite* AnipangIcon)
+	{
+		MoveBy* IconDrop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
+		Blink* IconBlink = Blink::create(60, 120);
+		AnipangIcon->runAction(IconDrop);
 	}
 
 	bool onTouchBegan(Touch* touch, Event* event);
@@ -72,21 +79,11 @@ public:
 	int aroundX[4] = {1, -1, 0, 0};
 	int aroundY[4] = {0, 0, 1, -1};
 	bool visited[ANIPANGNUM][ANIPANGNUM];
+	void allSearchDel();
 	void delIcon();
 	void IconBoom(int first, int second);
-	void IconFall(Sprite* AnipangIcon/*, MoveBy* IconDrop*/);
 	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
 	bool isX = true;
-
-public:
-	bool compare(const pair<int, int>& a, const pair<int, int>& b)
-	{
-		if (a.first == b.first)
-		{
-			return a.second > b.second;
-		}
-		return a.first > b.first
-	}
 
 public:	
 	static Scene* createScene();

@@ -220,13 +220,22 @@ void ANIPANG::delIcon()
 {
 	decide.x = 0;
 	decide.y = 0;
-	int x, y;
+	vector<pair<int, int>> firstTemp;
+	bool isFirstMatch, isSecondMatch;//matchSearch bool contain;
 
-	if (matchSearch(NowX, NowY, 0, decide) ||
-		matchSearch(NowX + aroundX[SearchDirection], NowY + aroundY[SearchDirection], 0, decide))
+	isFirstMatch = matchSearch(NowX, NowY, 0, decide);
+	log("size = %d ", boomingIcon.size());
+	firstTemp = boomingIcon;
+	isSecondMatch = matchSearch(NowX + aroundX[SearchDirection], NowY + aroundY[SearchDirection], 0, decide);
+
+	if (isFirstMatch && !boomingIcon.size()) // if isSecondMatch is empty, to overflow prevent
+	{
+		boomingIcon = firstTemp;
+	}
+
+	if (isFirstMatch || isSecondMatch)
 	{
 		log("boom");
-		boomingIcon.push_back(make_pair(NowX, NowY));
 		sort(boomingIcon.begin(), boomingIcon.end(), compare);
 
 		for (size_t k = 0; k < boomingIcon.size(); k++)
@@ -296,16 +305,18 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 			boomingIcon.pop_back();
 		}
 		resetSearch();
-		boomingIcon.push_back(make_pair(NowX, NowY));
+		boomingIcon.push_back(make_pair(targetX, targetY));
 		return true;
 	}
 
 	//X explode trigger disappear
 	if (direction > 1 && isX && !(bombConditions[X] >= 2))
 	{
+		for (size_t i = 0; i < bombConditions[X]; i++)
+		{
+			boomingIcon.pop_back();
+		}
 		isX = false;
-		boomingIcon.clear();
-		boomingIcon.shrink_to_fit();
 		bombConditions[X] = 0;
 	}
 
@@ -390,17 +401,17 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 	}
 }
 
-void ANIPANG::resetSearch(bool isCoor)
+void ANIPANG::resetSearch(/*bool isCoor*/)
 {
 	bombConditions[X] = 0;
 	bombConditions[Y] = 0;
 	reset(visited);
 	isX = true;
-	if (isCoor == X)
+
+	//if (isCoor == X)
 	{
-
+		//	isX = true;
 	}
-
 }
 
 void ANIPANG::onExit()

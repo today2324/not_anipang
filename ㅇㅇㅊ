@@ -83,7 +83,7 @@ public:
 	void delIcon();
 	void IconBoom(int first, int second);
 	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
-	void resetSearch();
+	void resetSearch(/*bool isCoor*/);
 	bool isX = true;
 
 public:	

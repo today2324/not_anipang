@@ -29,7 +29,7 @@ public:
 		"icon/dino.png", //3
 		"icon/herb.png", //4
 		"icon/choucream.png", //5
-		"icon/popping.png" //6
+		"icon/popping.png", //6
 	};
 
 	struct Anipang {
@@ -73,7 +73,7 @@ public:
 	void onTouchEnded(Touch* touch, Event* event);
 	void onExit();
 	void moveIcon(Vec2 MovingDirection, int PorM);
-
+	
 public:
 	int SearchDirection;
 	int aroundX[4] = {1, -1, 0, 0};
@@ -83,6 +83,7 @@ public:
 	void delIcon();
 	void IconBoom(int first, int second);
 	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
+	void resetSearch(int Ytrigger);
 	bool isX = true;
 
 public:	

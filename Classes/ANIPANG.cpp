@@ -204,7 +204,7 @@ void ANIPANG::moveIcon(Vec2 MovingDirection, int PorM)
 	else { replaceY += PorM; }
 
 	if (0 > replaceX || replaceX >= ANIPANGNUM) { return; }
-	if (0 > replaceY || replaceY >= ANIPANGNUM) { return; }	
+	if (0 > replaceY || replaceY >= ANIPANGNUM) { return; }
 
 	MoveBy* swipeOne = MoveBy::create(0.3, Point(MovingDirection.x, MovingDirection.y));
 	MoveBy* swipeTwo = MoveBy::create(0.3, Point(-MovingDirection.x, -MovingDirection.y));
@@ -220,37 +220,37 @@ void ANIPANG::delIcon()
 {
 	decide.x = 0;
 	decide.y = 0;
-	int x, y;
+	vector<pair<int, int>> firstTemp;
+	bool isFirstMatch, isSecondMatch;//matchSearch bool contain;
 
-	for (size_t i = 0; i < 2; i++)
+	isFirstMatch = matchSearch(NowX, NowY, 0, decide);
+	log("size = %d ", boomingIcon.size());
+	firstTemp = boomingIcon;
+	isSecondMatch = matchSearch(NowX + aroundX[SearchDirection], NowY + aroundY[SearchDirection], 0, decide);
+
+	if (isFirstMatch && !boomingIcon.size()) // if isSecondMatch is empty, to overflow prevent
 	{
-		if (matchSearch(NowX, NowY, 0, decide))
-		{
-			log("boom");
-			boomingIcon.push_back(make_pair(NowX, NowY));
-			sort(boomingIcon.begin(), boomingIcon.end(), compare);
-			
-			for (size_t k = 0; k < boomingIcon.size(); k++)
-			{
-				IconBoom(boomingIcon[k].first, boomingIcon[k].second);
-			}
-
-			//boom icon above target
-		//	allSearchDel();
-		}
-		else
-		{
-			//log("no boom");
-		}
-		reset(visited);
-		boomingIcon.clear();
-		boomingIcon.shrink_to_fit();
-		NowX += aroundX[SearchDirection];
-		NowY += aroundY[SearchDirection];
-		bombConditions[X] = 0;
-		bombConditions[Y] = 0;
-		isX = true;
+		boomingIcon = firstTemp;
 	}
+
+	if (isFirstMatch || isSecondMatch)
+	{
+		log("boom");
+		sort(boomingIcon.begin(), boomingIcon.end(), compare);
+
+		for (size_t k = 0; k < boomingIcon.size(); k++)
+		{
+			IconBoom(boomingIcon[k].first, boomingIcon[k].second);
+		}
+		//boom icon above target
+		//allSearchDel();
+	}
+	else
+	{
+		//log("no boom");
+	}
+	boomingIcon.clear();
+	boomingIcon.shrink_to_fit();
 }
 
 void ANIPANG::IconBoom(int first, int second)
@@ -274,7 +274,7 @@ void ANIPANG::IconBoom(int first, int second)
 	{
 		IconFall(field[first][i].anipangIcon);
 	}
-	
+
 	for (size_t i = second + 1; i < ANIPANGNUM; i++)
 	{
 		if (i != ANIPANGNUM - 1)
@@ -287,42 +287,48 @@ void ANIPANG::IconBoom(int first, int second)
 			swap(field[first][i].anipangIcon, field[first][second].anipangIcon);
 			swap(field[first][i].type, field[first][second].type);
 		}
-	}	
+	}
 }
 
 int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 {
-	int deX=decide.x, deY=decide.y;
+	int deX = decide.x, deY = decide.y;
 	int replaceX = targetX + aroundX[direction];
 	int replaceY = targetY + aroundY[direction];
-	
+
 	//boom
 	if ((bombConditions[X] >= 2 || bombConditions[Y] >= 2) && 4 <= direction)
 	{
+		// if Y can't boom Y value erase
 		if (bombConditions[Y] < 2 && bombConditions[Y])
 		{
 			boomingIcon.pop_back();
 		}
+		resetSearch(false);
+		boomingIcon.push_back(make_pair(targetX, targetY));
 		return true;
 	}
 
 	//X explode trigger disappear
-	if (direction > 1 && isX && !(bombConditions[X]>=2))
+	if (direction > 1 && isX && !(bombConditions[X] >= 2))
 	{
+		for (size_t i = 0; i < bombConditions[X]; i++)
+		{
+			boomingIcon.pop_back();
+		}
 		isX = false;
-		boomingIcon.clear();
-		boomingIcon.shrink_to_fit();
 		bombConditions[X] = 0;
 	}
 
 	//no boom
 	if (4 <= direction || direction < 0)
 	{
+		resetSearch(bombConditions[Y]);
 		return false;
 	}
 
 	//top bottom disconnect
-	if (ANIPANGNUM <= replaceX+deX || replaceX+deX < 0)
+	if (ANIPANGNUM <= replaceX + deX || replaceX + deX < 0)
 	{
 		decide.x = 0;
 		return matchSearch(targetX, targetY, direction + 1, decide);
@@ -349,7 +355,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 		switch (direction)
 		{
 		case RIGHT:
-			decide.x = deX+1;
+			decide.x = deX + 1;
 			if (targetX == replaceX + deX && targetY == replaceY + deY)
 			{
 				return matchSearch(targetX, targetY, direction, decide);
@@ -357,7 +363,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 			bombConditions[X]++;
 			break;
 		case LEFT:
-			decide.x = deX-1;
+			decide.x = deX - 1;
 			if (targetX == replaceX + deX && targetY == replaceY + deY)
 			{
 				return matchSearch(targetX, targetY, direction, decide);
@@ -365,7 +371,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 			bombConditions[X]++;
 			break;
 		case UP:
-			decide.y = deY+1;
+			decide.y = deY + 1;
 			if (targetX == replaceX + deX && targetY == replaceY + deY)
 			{
 				return matchSearch(targetX, targetY, direction, decide);
@@ -373,7 +379,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 			bombConditions[Y]++;
 			break;
 		case DOWN:
-			decide.y = deY-1;
+			decide.y = deY - 1;
 			if (targetX == replaceX + deX && targetY == replaceY + deY)
 			{
 				return matchSearch(targetX, targetY, direction, decide);
@@ -393,11 +399,21 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 
 		return matchSearch(targetX, targetY, direction + 1, decide);
 	}
-
-	Acted = true;
-	return 1;
 }
 
+void ANIPANG::resetSearch(int Ytrigger)
+{
+	bombConditions[X] = 0;
+	bombConditions[Y] = 0;
+	reset(visited);
+	isX = true;
+
+	if(Ytrigger)
+	{
+		boomingIcon.pop_back();
+	}
+
+}
 
 void ANIPANG::onExit()
 {
@@ -410,7 +426,7 @@ bool ANIPANG::init()
 	{
 		return false;
 	}
-	
+
 	onMap();
 	setLis();
 	//onExit();

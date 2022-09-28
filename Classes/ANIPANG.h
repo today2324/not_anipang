@@ -85,7 +85,7 @@ public:
 	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
 	void resetSearch(int Ytrigger);
 	bool isX = true;
-
+	void fallIconDel(int minValue);
 public:	
 	static Scene* createScene();
 

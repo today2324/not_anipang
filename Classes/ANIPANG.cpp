@@ -17,9 +17,9 @@ bool compare(const pair<int, int>& a, const pair<int, int>& b)
 {
 	if (a.first == b.first)
 	{
-		return a.second > b.second;
+		return a.second < b.second;
 	}
-	return a.first > b.first;
+	return a.first < b.first;
 }
 
 void ANIPANG::allSearchDel()
@@ -242,8 +242,8 @@ void ANIPANG::delIcon()
 		{
 			IconBoom(boomingIcon[k].first, boomingIcon[k].second);
 		}
-		//boom icon above target
-		//allSearchDel();
+
+		fallIconDel(boomingIcon[0].second);
 	}
 	else
 	{
@@ -251,6 +251,11 @@ void ANIPANG::delIcon()
 	}
 	boomingIcon.clear();
 	boomingIcon.shrink_to_fit();
+}
+
+void ANIPANG::fallIconDel(int minValue)
+{
+	
 }
 
 void ANIPANG::IconBoom(int first, int second)

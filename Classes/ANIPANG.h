@@ -19,6 +19,17 @@
 using namespace std;
 using namespace cocos2d;
 
+struct CoorTool {
+	int depth;
+	int left;
+	int right;
+};
+
+struct Anipang {
+	Sprite* anipangIcon;
+	int type;
+};
+
 class ANIPANG : public Scene
 {
 public:
@@ -30,11 +41,6 @@ public:
 		"icon/herb.png", //4
 		"icon/choucream.png", //5
 		"icon/popping.png", //6
-	};
-
-	struct Anipang {
-		Sprite* anipangIcon;
-		int type;
 	};
 
 	vector<pair<int, int>> boomingIcon;
@@ -85,7 +91,8 @@ public:
 	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
 	void resetSearch(int Ytrigger);
 	bool isX = true;
-	void fallIconDel(int minValue);
+	void fallingIconDel(CoorTool need);
+	CoorTool needDelSearch(vector<pair<int, int>> target);
 public:	
 	static Scene* createScene();
 

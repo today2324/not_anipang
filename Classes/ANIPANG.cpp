@@ -212,8 +212,7 @@ void ANIPANG::moveIcon(Vec2 MovingDirection, int PorM)
 	field[NowX][NowY].anipangIcon->runAction(swipeOne);
 	field[replaceX][replaceY].anipangIcon->runAction(swipeTwo);
 
-	swap(field[NowX][NowY].type, field[replaceX][replaceY].type);
-	swap(field[NowX][NowY].anipangIcon, field[replaceX][replaceY].anipangIcon);
+	swap(field[NowX][NowY], field[replaceX][replaceY]);
 }
 
 void ANIPANG::delIcon()
@@ -243,7 +242,7 @@ void ANIPANG::delIcon()
 			IconBoom(boomingIcon[k].first, boomingIcon[k].second);
 		}
 
-		fallIconDel(boomingIcon[0].second);
+		//fallingIconDel(needDelSearch(boomingIcon));
 	}
 	else
 	{
@@ -253,9 +252,16 @@ void ANIPANG::delIcon()
 	boomingIcon.shrink_to_fit();
 }
 
-void ANIPANG::fallIconDel(int minValue)
+void ANIPANG::fallingIconDel(CoorTool need)
 {
-	
+
+}
+
+CoorTool ANIPANG::needDelSearch(vector<pair<int, int>> target)
+{
+	CoorTool needTool;
+
+	return needTool;
 }
 
 void ANIPANG::IconBoom(int first, int second)
@@ -284,13 +290,11 @@ void ANIPANG::IconBoom(int first, int second)
 	{
 		if (i != ANIPANGNUM - 1)
 		{
-			swap(field[first][i].anipangIcon, field[first][i + 1].anipangIcon);
-			swap(field[first][i].type, field[first][i + 1].type);
+			swap(field[first][i], field[first][i + 1]);
 		}
 		else
 		{
-			swap(field[first][i].anipangIcon, field[first][second].anipangIcon);
-			swap(field[first][i].type, field[first][second].type);
+			swap(field[first][i], field[first][second]);
 		}
 	}
 }
@@ -412,8 +416,7 @@ void ANIPANG::resetSearch(int Ytrigger)
 	bombConditions[Y] = 0;
 	reset(visited);
 	isX = true;
-
-	if(Ytrigger)
+	if (Ytrigger)
 	{
 		boomingIcon.pop_back();
 	}

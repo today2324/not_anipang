@@ -69,8 +69,10 @@ public:
 
 	void IconFall(Sprite* AnipangIcon)
 	{
-		MoveBy* IconDrop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
+		DelayTime* delay = DelayTime::create(0.2);
+		MoveBy* Drop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
 		Blink* IconBlink = Blink::create(60, 120);
+		Sequence* IconDrop = Sequence::create(delay, Drop, nullptr);
 		AnipangIcon->runAction(IconDrop);
 	}
 

@@ -17,9 +17,9 @@ bool compare(const pair<int, int>& a, const pair<int, int>& b)
 {
 	if (a.first == b.first)
 	{
-		return a.second < b.second;
+		return a.second > b.second;
 	}
-	return a.first < b.first;
+	return a.first > b.first;
 }
 
 void ANIPANG::allSearchDel()
@@ -136,7 +136,6 @@ void ANIPANG::onTouchEnded(Touch* touch, Event* event)
 	if (!TfuncOperate) { return; }
 	delIcon();
 	TfuncOperate = false;
-
 }
 
 void ANIPANG::onTouchMoved(Touch* touch, Event* event)
@@ -241,8 +240,7 @@ void ANIPANG::delIcon()
 		{
 			IconBoom(boomingIcon[k].first, boomingIcon[k].second);
 		}
-
-		//fallingIconDel(needDelSearch(boomingIcon));
+		log("test");
 	}
 	else
 	{
@@ -257,10 +255,19 @@ void ANIPANG::fallingIconDel(CoorTool need)
 
 }
 
+//insert left, right, depth value in needTool
 CoorTool ANIPANG::needDelSearch(vector<pair<int, int>> target)
 {
 	CoorTool needTool;
-
+	needTool.right = target[target.size() - 1].first;
+	needTool.left = target[0].first;
+	needTool.depth = target[target.size() - 1].second;
+	for (size_t i = 0; i < target.size()-1; i++)
+	{
+		needTool.left = max(target[i].first, needTool.left);
+		needTool.depth = min(target[i].second, needTool.depth);
+	}
+	log("depth = %d, right = %d, left = %d", needTool.depth, needTool.right, needTool.left);
 	return needTool;
 }
 
@@ -268,14 +275,15 @@ void ANIPANG::IconBoom(int first, int second)
 {
 	Hide* IconHide = Hide::create();
 	Show* IconShow = Show::create();
-	MoveBy* IconDrop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
+	MoveBy* Drop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
 	MoveBy* IconPullUp = MoveBy::create(0.3, Point(0, ANIPANGDISTANCE * (ANIPANGNUM - second)));
-	Sequence* RaiseLowerOne = Sequence::create(IconHide, IconPullUp, IconShow, IconDrop, nullptr);
+	DelayTime* delay = DelayTime::create(0.2);
+	Sequence* IconDrop = Sequence::create(delay, Drop, nullptr);
+	Sequence* RaiseLowerOne = Sequence::create(IconHide, delay, IconPullUp, IconShow, Drop, nullptr);
 	if (boomingIcon[0].first == boomingIcon[1].first)
 	{
 		IconPullUp = MoveBy::create(0.3, Point(0, ANIPANGDISTANCE * (ANIPANGNUM - second + (3 - first))));
 	}
-
 	field[first][second].anipangIcon->runAction(RaiseLowerOne);
 	field[first][second].type = RandomHelper::random_int(0, (int)iconName.size() - 1);
 	field[first][second].anipangIcon->setTexture(iconName[field[first][second].type]);

@@ -16,6 +16,7 @@
 #define X 0
 #define Y 1
 
+#define DELAYTIME 0.2
 using namespace std;
 using namespace cocos2d;
 
@@ -23,6 +24,8 @@ struct CoorTool {
 	int depth;
 	int left;
 	int right;
+	int surface;
+	int overfall;
 };
 
 struct Anipang {
@@ -43,12 +46,12 @@ public:
 		"icon/popping.png", //6
 	};
 
-	vector<pair<int, int>> boomingIcon;
+	vector<pair<int, int>> explodingIcon;
 	Anipang field[ANIPANGNUM][ANIPANGNUM];
 	Vec2 BeganTouch;
 	bool TfuncOperate;
 	int NowX, NowY;
-	int bombConditions[2] = { 0, };
+	int explodingConditions[2] = { 0, };
 	bool Acted = false;
 	int width = ANIPANGINITVALUE;
 	int height = ANIPANGINITVALUE;
@@ -69,7 +72,7 @@ public:
 
 	void IconFall(Sprite* AnipangIcon)
 	{
-		DelayTime* delay = DelayTime::create(0.2);
+		DelayTime* delay = DelayTime::create(DELAYTIME);
 		MoveBy* Drop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
 		Blink* IconBlink = Blink::create(60, 120);
 		Sequence* IconDrop = Sequence::create(delay, Drop, nullptr);
@@ -89,12 +92,18 @@ public:
 	bool visited[ANIPANGNUM][ANIPANGNUM];
 	void allSearchDel();
 	void delIcon();
-	void IconBoom(int first, int second);
-	int matchSearch(int targetX, int targetY, int direction, Vec2 decide);
+	void explodeIcon(int first, int second, bool fallCheck);
+	bool matchSearch(int targetX, int targetY, int direction, Vec2 decide);
 	void resetSearch(int Ytrigger);
 	bool isX = true;
 	void fallingIconDel(CoorTool need);
-	CoorTool needDelSearch(vector<pair<int, int>> target);
+	CoorTool needFallDelSearch(vector<pair<int, int>> target);
+
+	void vecClear()
+	{
+		explodingIcon.clear();
+		explodingIcon.shrink_to_fit();
+	}
 public:	
 	static Scene* createScene();
 

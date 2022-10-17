@@ -30,23 +30,22 @@ void ANIPANG::allSearchDel()
 		{
 			if (matchSearch(i, s, 0, decide))
 			{
-				boomingIcon.push_back(make_pair(i, s));
-				sort(boomingIcon.begin(), boomingIcon.end(), compare);
+				explodingIcon.push_back(make_pair(i, s));
+				sort(explodingIcon.begin(), explodingIcon.end(), compare);
 
-				for (size_t k = 0; k < boomingIcon.size(); k++)
+				for (size_t k = 0; k < explodingIcon.size(); k++)
 				{
-					IconBoom(boomingIcon[k].first, boomingIcon[k].second);
+					explodeIcon(explodingIcon[k].first, explodingIcon[k].second, false);
 				}
 
 				i = 0, s = 0;
 			}
 			reset(visited);
-			boomingIcon.clear();
-			boomingIcon.shrink_to_fit();
+			vecClear();
 			NowX += aroundX[SearchDirection];
 			NowY += aroundY[SearchDirection];
-			bombConditions[X] = 0;
-			bombConditions[Y] = 0;
+			explodingConditions[X] = 0;
+			explodingConditions[Y] = 0;
 			isX = true;
 		}
 	}
@@ -222,48 +221,112 @@ void ANIPANG::delIcon()
 	bool isFirstMatch, isSecondMatch;//matchSearch bool contain;
 
 	isFirstMatch = matchSearch(NowX, NowY, 0, decide);
-	log("size = %d ", boomingIcon.size());
-	firstTemp = boomingIcon;
+	firstTemp = explodingIcon;
 	isSecondMatch = matchSearch(NowX + aroundX[SearchDirection], NowY + aroundY[SearchDirection], 0, decide);
 
-	if (isFirstMatch && !boomingIcon.size()) // if isSecondMatch is empty, to overflow prevent
+	if (isFirstMatch && !explodingIcon.empty()) // if isSecondMatch is empty, to overflow prevent
 	{
-		boomingIcon = firstTemp;
+		explodingIcon = firstTemp;
 	}
 
 	if (isFirstMatch || isSecondMatch)
 	{
-		log("boom");
-		sort(boomingIcon.begin(), boomingIcon.end(), compare);
+		//log("explode");
+		sort(explodingIcon.begin(), explodingIcon.end(), compare);
 
-		for (size_t k = 0; k < boomingIcon.size(); k++)
+		for (size_t k = 0; k < explodingIcon.size(); k++)
 		{
-			IconBoom(boomingIcon[k].first, boomingIcon[k].second);
+			explodeIcon(explodingIcon[k].first, explodingIcon[k].second, false);
 		}
-		log("test");
+		fallingIconDel(needFallDelSearch(explodingIcon));
 	}
 	else
 	{
-		//log("no boom");
+		//log("can't explode");
 	}
-	boomingIcon.clear();
-	boomingIcon.shrink_to_fit();
+	vecClear();
 }
 
 void ANIPANG::fallingIconDel(CoorTool need)
 {
+	vecClear();
+	vector<pair<int, int>>explodeFallIcon;
+	decide.x = 0;
+	decide.y = 0;
+	DelayTime* delay = DelayTime::create(DELAYTIME * 2);
+	for (size_t i = 0; need.depth < need.surface; need.depth++)
+	{
+		if (matchSearch(need.overfall, need.depth, 0, decide))
+		{
+			if(explodeFallIcon.back() == explodingIcon.back())
+			{
+				break;
+			}
+			explodeFallIcon = explodingIcon;
+			vecClear();
+		}
+	}
+
+	for (size_t i = need.right+1; i < need.left; i++)
+	{
+		if (matchSearch(i, need.surface, 0, decide))
+		{
+			explodeFallIcon = explodingIcon;
+			vecClear();
+		}
+		if (matchSearch(i, ANIPANGNUM-1, 0, decide))
+		{
+			explodeFallIcon = explodingIcon;
+			vecClear();
+		}
+	}
+
+	for (size_t i = need.surface; i < ANIPANGNUM; i++)
+	{
+		if (matchSearch(need.right, i, 0, decide))
+		{
+			explodeFallIcon = explodingIcon;
+			vecClear();
+		}
+		if (matchSearch(need.left, i, 0, decide))
+		{
+			explodeFallIcon = explodingIcon;
+			vecClear();
+		}
+	}
+	sort(explodeFallIcon.begin(), explodeFallIcon.end(), compare);
+	for (size_t i = 0; i < explodeFallIcon.size(); i++)
+	{
+		log("f9 test");
+		explodeIcon(explodeFallIcon[i].first, explodeFallIcon[i].second, true);
+	}
+	vecClear();
+	explodeFallIcon.clear();
+	explodeFallIcon.shrink_to_fit();
+	log("est");
 
 }
-
+	
 //insert left, right, depth value in needTool
-CoorTool ANIPANG::needDelSearch(vector<pair<int, int>> target)
+CoorTool ANIPANG::needFallDelSearch(vector<pair<int, int>> target)
 {
 	CoorTool needTool;
-	needTool.right = target[target.size() - 1].first;
 	needTool.left = target[0].first;
-	needTool.depth = target[target.size() - 1].second;
-	for (size_t i = 0; i < target.size()-1; i++)
+	needTool.right = target.back().first;
+	needTool.depth = target[0].second;
+	needTool.overfall = target[0].first;
+	needTool.surface = target.back().second;
+	log("first confirm left = %d right = %d depth = %d overfall = %d surface = %d", needTool.left, needTool.right, needTool.depth, needTool.overfall, needTool.surface);
+	for (size_t i = 0; i < target.size() - 1; i++)
 	{
+		if (target[i].second == target[i + 1].second)
+		{
+			needTool.surface = target[i].second;
+		}
+		if (target[i].first == target[i + 1].first)
+		{
+			needTool.overfall = target[i].first;
+		}
 		needTool.left = max(target[i].first, needTool.left);
 		needTool.depth = min(target[i].second, needTool.depth);
 	}
@@ -271,19 +334,24 @@ CoorTool ANIPANG::needDelSearch(vector<pair<int, int>> target)
 	return needTool;
 }
 
-void ANIPANG::IconBoom(int first, int second)
+void ANIPANG::explodeIcon(int first, int second, bool fallCheck)
 {
 	Hide* IconHide = Hide::create();
 	Show* IconShow = Show::create();
 	MoveBy* Drop = MoveBy::create(0.3, Point(0, -ANIPANGDISTANCE));
 	MoveBy* IconPullUp = MoveBy::create(0.3, Point(0, ANIPANGDISTANCE * (ANIPANGNUM - second)));
-	DelayTime* delay = DelayTime::create(0.2);
+	DelayTime* delay = DelayTime::create(DELAYTIME);
 	Sequence* IconDrop = Sequence::create(delay, Drop, nullptr);
 	Sequence* RaiseLowerOne = Sequence::create(IconHide, delay, IconPullUp, IconShow, Drop, nullptr);
-	if (boomingIcon[0].first == boomingIcon[1].first)
+
+	if (explodingIcon[0].first == explodingIcon[1].first && !explodingIcon.empty())
 	{
 		IconPullUp = MoveBy::create(0.3, Point(0, ANIPANGDISTANCE * (ANIPANGNUM - second + (3 - first))));
 	}
+	/*if (fallCheck)
+	{
+		Sequence* RaiseLowerOne = Sequence::create(delay, delay, IconHide, delay, IconPullUp, IconShow, Drop, nullptr);
+	}*/
 	field[first][second].anipangIcon->runAction(RaiseLowerOne);
 	field[first][second].type = RandomHelper::random_int(0, (int)iconName.size() - 1);
 	field[first][second].anipangIcon->setTexture(iconName[field[first][second].type]);
@@ -306,41 +374,40 @@ void ANIPANG::IconBoom(int first, int second)
 		}
 	}
 }
-
-int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
+bool ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 {
 	int deX = decide.x, deY = decide.y;
 	int replaceX = targetX + aroundX[direction];
 	int replaceY = targetY + aroundY[direction];
 
-	//boom
-	if ((bombConditions[X] >= 2 || bombConditions[Y] >= 2) && 4 <= direction)
+	//explode
+	if ((explodingConditions[X] >= 2 || explodingConditions[Y] >= 2) && 4 <= direction)
 	{
-		// if Y can't boom Y value erase
-		if (bombConditions[Y] < 2 && bombConditions[Y])
+		// if Y can't explode Y value erase
+		if (explodingConditions[Y] < 2 && explodingConditions[Y])
 		{
-			boomingIcon.pop_back();
+			explodingIcon.pop_back();
 		}
 		resetSearch(false);
-		boomingIcon.push_back(make_pair(targetX, targetY));
+		explodingIcon.push_back(make_pair(targetX, targetY));
 		return true;
 	}
 
 	//X explode trigger disappear
-	if (direction > 1 && isX && !(bombConditions[X] >= 2))
+	if (direction > 1 && isX && !(explodingConditions[X] >= 2))
 	{
-		for (size_t i = 0; i < bombConditions[X]; i++)
+		for (size_t i = 0; i < explodingConditions[X]; i++)
 		{
-			boomingIcon.pop_back();
+			explodingIcon.pop_back();
 		}
 		isX = false;
-		bombConditions[X] = 0;
+		explodingConditions[X] = 0;
 	}
 
-	//no boom
+	//no explode
 	if (4 <= direction || direction < 0)
 	{
-		resetSearch(bombConditions[Y]);
+		resetSearch(explodingConditions[Y]);
 		return false;
 	}
 
@@ -364,7 +431,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 		}
 		if (targetX != replaceX + deX || targetY != replaceY + deY)
 		{
-			boomingIcon.push_back(make_pair(replaceX + deX, replaceY + deY));
+			explodingIcon.push_back(make_pair(replaceX + deX, replaceY + deY));
 		}
 
 		visited[replaceX + deX][replaceY + deY] = true;
@@ -377,7 +444,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 			{
 				return matchSearch(targetX, targetY, direction, decide);
 			}
-			bombConditions[X]++;
+			explodingConditions[X]++;
 			break;
 		case LEFT:
 			decide.x = deX - 1;
@@ -385,7 +452,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 			{
 				return matchSearch(targetX, targetY, direction, decide);
 			}
-			bombConditions[X]++;
+			explodingConditions[X]++;
 			break;
 		case UP:
 			decide.y = deY + 1;
@@ -393,7 +460,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 			{
 				return matchSearch(targetX, targetY, direction, decide);
 			}
-			bombConditions[Y]++;
+			explodingConditions[Y]++;
 			break;
 		case DOWN:
 			decide.y = deY - 1;
@@ -401,7 +468,7 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 			{
 				return matchSearch(targetX, targetY, direction, decide);
 			}
-			bombConditions[Y]++;
+			explodingConditions[Y]++;
 			break;
 		default:
 			break;
@@ -420,13 +487,13 @@ int ANIPANG::matchSearch(int targetX, int targetY, int direction, Vec2 decide)
 
 void ANIPANG::resetSearch(int Ytrigger)
 {
-	bombConditions[X] = 0;
-	bombConditions[Y] = 0;
+	explodingConditions[X] = 0;
+	explodingConditions[Y] = 0;
 	reset(visited);
 	isX = true;
 	if (Ytrigger)
 	{
-		boomingIcon.pop_back();
+		explodingIcon.pop_back();
 	}
 
 }
